@@ -1,0 +1,2 @@
+from .commandline import MegaCommandLineClient
+
