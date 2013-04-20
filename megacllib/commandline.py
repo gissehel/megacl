@@ -6,7 +6,7 @@ import sys
 import os
 import time
 import yaml
-import pyaml
+# import pyaml
 import shutil
 import getpass
 import posixpath
@@ -274,8 +274,4 @@ class MegaCommandLineClient(object) :
         self._root = None
         self.del_stream('root')
         self.get_root()
-
-
-
-
 
