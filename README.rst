@@ -135,7 +135,7 @@ To reload the file list, use ``reload``::
     :3DBFSa9S '/Cloud Drive/Documents/mydoc.txt'
     :iSpGZz4J '/Cloud Drive/Test'
     :QKxQzDlD '/Cloud Drive/Test/Image test.png'
-    :QKxQzDlD '/Cloud Drive/Test/README.md'
+    :4sMDajOQ '/Cloud Drive/Test/README.md'
     :DDAgCv1a '/Cloud Drive/Test/xkcd'
     :gKJlhatb '/Cloud Drive/Test/xkcd/184-matrix_transform.png'
     :0TwEKCpb '/Cloud Drive/Test/xkcd/353-python.png'
