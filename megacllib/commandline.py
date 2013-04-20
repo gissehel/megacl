@@ -275,3 +275,30 @@ class MegaCommandLineClient(object) :
         self.del_stream('root')
         self.get_root()
 
+    @CLRunner.command()
+    def mkdir(self, args, kwargs) :
+        """create a new remote directory"""
+        if len(args) < 2:
+            self.errorexit(_('Need a directory name and a place where to create it (directory path or handle'))
+        client = self.get_client()
+        root = self.get_root()
+        node = self.findnode(root, args[1], isdir=True)
+        client.create_folder(args[0], node['h'])
+
+    @CLRunner.command()
+    def geturl(self, args, kwargs) :
+        """get from a url"""
+        if len(args) == 0 :
+            self.errorexit(_('Need at least a url to download'))
+        for arg in args :
+            if '!' not in arg :
+                self.errorexit(_("[%s] is not a valid mega url") % (arg,))
+        client = self.get_client()
+        for arg in args :
+            file_handle, file_key = arg.split('!')[-2:]
+            self.status(_('Downloading https://mega.co.nz/#!%s!%s') % (file_handle, file_key))
+            client.download_file(file_handle, file_key, is_public=True)
+
+
+
+
