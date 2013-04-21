@@ -367,6 +367,14 @@ class MegaCommandLineClient(object) :
             self.status(_('Downloading https://mega.co.nz/#!%s!%s') % (file_handle, file_key))
             client.download_file(file_handle, file_key, is_public=True)
 
+    @CLRunner.command()
+    def quota(self, args, kwargs) :
+        """get account's quota"""
+        client = self.get_client()
+        storage = client.get_storage_space(giga=True)
+        self.status(_("Current quota: [%(used).2f/%(total).2f]") % storage)
+
+
 
 
 
