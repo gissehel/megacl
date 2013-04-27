@@ -32,8 +32,12 @@ class MegaCommandLineClient(object) :
         self._email = None
         self._api = None
         self._sequence_num = None
+        self._use_config = True
 
         self._root = None
+
+        self._login = None
+        self._password = None
 
     def export_config(self) :
         if self._api is not None :
@@ -52,13 +56,25 @@ class MegaCommandLineClient(object) :
         self._sequence_num = config.get('sequence_num',None)
 
     def get_client(self) :
-        if (self._api is None) and (self._sid != '') :
-            self._api = Mega()
-            self._api.sid = self._sid
-            self._api.master_key = self._master_key
-            self._api.sequence_num = self._sequence_num
-            self._api.users_keys = {}
+        if (self._api is None) :
+            if (self._sid != '') :
+                self._api = Mega()
+                self._api.sid = self._sid
+                self._api.master_key = self._master_key
+                self._api.sequence_num = self._sequence_num
+                self._api.users_keys = {}
+            elif self._login is not None and self._password is not None :
+                self._api = Mega.login(self._login, self._password)
+                
         return self._api
+
+    def load_stream(self,*args,**kwargs) :
+        if self._use_config :
+            return self.__super.load_stream(*args,**kwargs)
+
+    def save_stream(self,*args,**kwargs) :
+        if self._use_config :
+            self.__super.save_stream(*args,**kwargs)
 
     @CLRunner.param(aliases=['d'])
     def debug(self, **kwargs) :
@@ -71,6 +87,30 @@ class MegaCommandLineClient(object) :
         '''Get help on specific command'''
         self.help_on_command(**kwargs)
         # print "!!%r=%r" % (name,value)
+
+    @CLRunner.param(name='no-config',aliases=['X'])
+    def no_config(self,**kwargs) :
+        '''Don't read/write config files'''
+        self._sid = ''
+        self._master_key = None
+        self._email = None
+        self._api = None
+        self._sequence_num = None
+        self._use_config = False
+
+        self._root = None
+
+    @CLRunner.param(name='login', need_value=True)
+    def param_login(self, kwargs, **rem_kwargs) :
+        '''The login to use when mode --no-config'''
+        if 'login' in kwargs :
+            self._login = kwargs['login']
+
+    @CLRunner.param(name='password', need_value=True)
+    def param_password(self, kwargs, **rem_kwargs) :
+        '''The password to use when mode --no-config (not safe, prefer the login command)'''
+        if 'password' in kwargs :
+            self._password = kwargs['password']
 
     @CLRunner.command()
     def help(self, args=[], kwargs={}) :

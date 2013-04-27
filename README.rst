@@ -40,6 +40,11 @@ Usage
                              (--debug,-d)
         --help               Get help on specific command
                              (--help,-h)
+        --login=VALUE        The login to use when mode --no-config
+        --no-config          Don't read/write config files
+                             (--no-config,-X)
+        --password=VALUE     The password to use when mode --no-config 
+                             (not safe, prefer the login command)
 
 To use this tool, you first need to login::
 
@@ -143,4 +148,22 @@ To reload the file list, use ``reload``::
     :TKhFSKhJ '/Cloud Drive/Test/xkcd/163-donald_knuth.png'
     :RIQXhqtZ '/Inbox'
     :TK5UwKlS '/Rubbish Bin'
+
+Login informations and directory cache are stored on the 
+filesystem. You can also use this tool stateless with
+the switch ``--no-config`` (or ``-X``). You must then
+provide ``--login`` and ``--password`` commands on every
+calls. Note that providing password on the command line
+is considered a **bad practice**.
+
+Commands look like::
+
+    $ mcl find -f es --no-config --login=dave@example.com --password=r_N71kL4ee:cG28p-N,aam4
+    :iSpGZz4J '/Cloud Drive/Test'
+    :QKxQzDlD '/Cloud Drive/Test/Image test.png'
+    :DDAgCv1a '/Cloud Drive/Test/xkcd'
+    :gKJlhatb '/Cloud Drive/Test/xkcd/184-matrix_transform.png'
+    :0TwEKCpb '/Cloud Drive/Test/xkcd/353-python.png'
+    :CLRGYv5Y '/Cloud Drive/Test/xkcd/303-compiling.png'
+    :TKhFSKhJ '/Cloud Drive/Test/xkcd/163-donald_knuth.png'
 
