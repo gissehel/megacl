@@ -30,6 +30,7 @@ Usage
         help                 give help
         login                login to mega
         logout               logout from mega
+        ls                   list files in a mega directory
         mkdir                create a new remote directory
         put                  put one or more files
         reload               reload the filesystem
@@ -46,6 +47,9 @@ Usage
         --password=VALUE     The password to use when mode --no-config 
                              (not safe, prefer the login command)
 
+Login
+-----
+
 To use this tool, you first need to login::
 
     $ mcl login --email=dave@example.com
@@ -57,6 +61,9 @@ Once you're loggin, while your password is not stored anywhere,
 your masterkey and the current sid for the loggin session are stored 
 in the configuration file ``~/.megaclient/config``. If this is 
 a problem of any sort, please **do not use this tool**.
+
+Show & Find
+-----------
 
 To show all the directory and files on the account, use the show or the find command::
 
@@ -111,6 +118,10 @@ You can also use filters::
     :CLRGYv5Y '/Cloud Drive/Test/xkcd/303-compiling.png'
     :TKhFSKhJ '/Cloud Drive/Test/xkcd/163-donald_knuth.png'
 
+
+Get & Put
+---------
+
 The first part of each result line is the file handle. When you 
 need to specify a file or a directory, you can either use the full 
 path or its handle (including the ":")::
@@ -128,6 +139,9 @@ path or its handle (including the ":")::
     $ mcl put ../docs/README.md :iSpGZz4J
     Sending [README.md] (548655 bytes)
     Transfert completed in 1.8 seconds (297.7 KiB/s)
+
+Reload
+------
 
 To reload the file list, use ``reload``::
     
@@ -148,6 +162,21 @@ To reload the file list, use ``reload``::
     :TKhFSKhJ '/Cloud Drive/Test/xkcd/163-donald_knuth.png'
     :RIQXhqtZ '/Inbox'
     :TK5UwKlS '/Rubbish Bin'
+
+Ls
+--
+
+Use can also use unix-like ls command::
+
+    $ mcl ls '/Cloud Drive/Test'
+    Image test.png
+    README.md
+    xkcd
+
+Note that ``ls -l`` is note supported right now, but will be in the future.
+
+Stateless usage with no config file involved
+--------------------------------------------
 
 Login informations and directory cache are stored on the 
 filesystem. You can also use this tool stateless with

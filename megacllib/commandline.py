@@ -242,7 +242,36 @@ class MegaCommandLineClient(object) :
             node = root['files'][root['path'][path]]
             if ('filter' not in kwargs) or (kwargs['filter'].lower() in node['a']['n'].lower()) :
                 self.status(":%s %s'%s'" % (node['h'],'  '*node['a']['level'], node['a']['n']))
-    
+
+    @CLRunner.command()
+    def ls(self, args, kwargs) :
+        """list files in a mega directory"""
+        root = self.get_root()
+        if len(args) == 0:
+            self.errorexit(_('Need a folder to list'))
+        dirnode = self.findnode(root, args[0], isdir=True)
+        path = dirnode['a']['path']
+        # pathparts => [ '/Poide', '/Praf', '/Pido' ] if path == '/Poide/Praf/Pido'
+        pathparts = [ '/' + part for part in path.split('/')[1:] ]
+        current_tree = root['tree']
+        current_path = ''
+        for pathpart in pathparts :
+            current_path += pathpart
+            if current_path in root['path'] :
+                current_handle = root['path'][current_path]
+                if current_handle in current_tree :
+                    if 'children' in current_tree[current_handle] :
+                        current_tree = current_tree[current_handle]['children']
+                    else :
+                        self.errorexit(_('Hum... Something went wrong somewhere...'))
+                else :
+                    self.errorexit(_('Hum... Something went wrong somewhere...'))
+            else :
+                self.errorexit(_('Hum... Something went wrong somewhere...'))
+        file_handles = current_tree.keys()
+        for handle in sorted(file_handles, key=lambda h:root['files'][h]['a']['n']) :
+            self.status(root['files'][handle]['a']['n'])
+
     def findnode(self, root, arg, isfile=False, isdir=False) :
         if arg.startswith(':') :
             handle = arg[1:]
