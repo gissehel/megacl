@@ -294,10 +294,21 @@ class MegaCommandLineClient(object) :
     def _get_status_transfert(self, size, start_time, stop_time):
         return _('Transfert completed in %s seconds (%s KiB/s)') % self._get_time_speed(size, start_time, stop_time)
 
-    @CLRunner.command()
+    def on_progression_updated(self, progression, total, **kwargs) :
+        print 'Progression [%s/%s]' % (progression, total)
+
+    @CLRunner.command(params={
+        'show-progression' : {
+            'aliases' : ['p'],
+            'doc' : "Show the download progression",
+            },
+        })
     def get(self, args, kwargs) :
         """get one or more files"""
         root = self.get_root()
+        progression_callback = None
+        if 'show-progression' in kwargs :
+            progression_callback = self.on_progression_updated
         if len(args) == 0 :
             self.errorexit(_('Need a file handle to download'))
         for arg in args :
@@ -308,16 +319,24 @@ class MegaCommandLineClient(object) :
         
             client = self.get_client()
             start_time = time.time()
-            client.download((node['h'], node), '.')
+            client.download((node['h'], node), '.', on_progression_updated=progression_callback)
             stop_time = time.time()
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
 
 
-    @CLRunner.command()
+    @CLRunner.command(params={
+        'show-progression' : {
+            'aliases' : ['p'],
+            'doc' : "Show the upload progression",
+            },
+        })
     def put(self, args, kwargs) :
         """put one or more files"""
         root = self.get_root()
+        progression_callback = None
+        if 'show-progression' in kwargs :
+            progression_callback = self.on_progression_updated
         if len(args) < 2:
             self.errorexit(_('Need one or more file to upload and a directory handle where to upload'))
         for filename in args[:-1]:
@@ -331,7 +350,7 @@ class MegaCommandLineClient(object) :
             size = os.stat(filename).st_size
             self.status(_('Sending [%s] (%s bytes)')%(filename,size))
             start_time = time.time()
-            client.upload(filename, node['h'])
+            client.upload(filename, node['h'], on_progression_updated=progression_callback)
             stop_time = time.time()
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
