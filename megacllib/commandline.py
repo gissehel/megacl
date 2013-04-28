@@ -139,7 +139,8 @@ class MegaCommandLineClient(object) :
         if len(password) == 0 :
             self.errorexit(_('need a password to login'))
             
-        self._api = Mega.login(self._email,password)
+        self._api = Mega()
+        self._api.login(self._email,password)
         try :
             pass
             # self._api.login()
