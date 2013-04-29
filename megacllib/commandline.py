@@ -64,7 +64,11 @@ class MegaCommandLineClient(object) :
                 self._api.sequence_num = self._sequence_num
                 self._api.users_keys = {}
             elif self._login is not None and self._password is not None :
-                self._api = Mega.login(self._login, self._password)
+                self._api = Mega()
+                try :
+                    self._api.login(self._login, self._password)
+                except Exception :
+                    self.errorexit(_('login failled'))
                 
         return self._api
 
