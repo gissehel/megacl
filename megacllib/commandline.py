@@ -182,6 +182,16 @@ class MegaCommandLineClient(object) :
             self.errorexit(_('You must login first'))
         files = client.get_files()
         root = {}
+        rootnode = {
+            'h' : '00000000',
+            'p' : '',
+            's' : 0,
+            'a' : { 'n' : '' },
+            'isFile' : False,
+            'isDir' : True,
+            }
+        files[rootnode['h']] = rootnode
+        self.save_stream('files',files)
         root['files'] = files
         root['tree'] = {}
         root['path'] = {}
@@ -192,8 +202,13 @@ class MegaCommandLineClient(object) :
                 treeitems[handle] = {}
                 treeitems[handle]['h'] = handle
             treeitem = treeitems[handle]
-            if 'p' in file and file['p'] in files :
-                phandle = file['p']
+            if file is rootnode :
+                root['tree'][handle] = treeitem
+            else :
+                if 'p' in file and file['p'] in files :
+                    phandle = file['p']
+                else :
+                    phandle = rootnode['h']
                 if phandle not in treeitems :
                     treeitems[phandle] = {}
                     treeitems[phandle]['h'] = phandle
@@ -201,8 +216,9 @@ class MegaCommandLineClient(object) :
                 if 'children' not in ptreeitem :
                     ptreeitem['children'] = {}
                 ptreeitem['children'][handle] = treeitem
-            else :
-                root['tree'][handle] = treeitem
+                file['isFile'] = (file['t'] == 0)
+                file['isDir'] = (file['t'] in (1,2,4))
+
         def updatepath(dictchildren, parentpath, level) :
             for treeitem in dictchildren.values() :
                 node = files[treeitem['h']]
@@ -246,6 +262,33 @@ class MegaCommandLineClient(object) :
             if ('filter' not in kwargs) or (kwargs['filter'].lower() in node['a']['n'].lower()) :
                 self.status(":%s %s'%s'" % (node['h'],'  '*node['a']['level'], node['a']['n']))
 
+    def _enumerate_files(self, root, path) :
+        if path == '/' :
+            pathparts = [ '/' ]
+        else :
+            # pathparts => [ '/', '/Poide', '/Praf', '/Pido' ] if path == '/Poide/Praf/Pido'
+            pathparts = [ '/' ] + [ '/' + part for part in path.split('/')[1:] ]
+        current_tree = root['tree']
+        current_path = ''
+        for pathpart in pathparts :
+            current_path += pathpart
+            current_path = current_path.replace('//','/')
+            if current_path in root['path'] :
+                current_handle = root['path'][current_path]
+                if current_handle in current_tree :
+                    if 'children' in current_tree[current_handle] :
+                        current_tree = current_tree[current_handle]['children']
+                    else :
+                        current_tree = {}
+                        # self.errorexit(_('Hum... Something went wrong somewhere...'))
+                else :
+                    self.errorexit(_('Hum... Something went wrong somewhere...'))
+            else :
+                self.errorexit(_('Hum... Something went wrong somewhere...'))
+        file_handles = current_tree.keys()
+        for handle in sorted(file_handles, key=lambda h:root['files'][h]['a']['n']) :
+            yield root['files'][handle]
+
     @CLRunner.command()
     def ls(self, args, kwargs) :
         """list files in a mega directory"""
@@ -254,26 +297,8 @@ class MegaCommandLineClient(object) :
             self.errorexit(_('Need a folder to list'))
         dirnode = self.findnode(root, args[0], isdir=True)
         path = dirnode['a']['path']
-        # pathparts => [ '/Poide', '/Praf', '/Pido' ] if path == '/Poide/Praf/Pido'
-        pathparts = [ '/' + part for part in path.split('/')[1:] ]
-        current_tree = root['tree']
-        current_path = ''
-        for pathpart in pathparts :
-            current_path += pathpart
-            if current_path in root['path'] :
-                current_handle = root['path'][current_path]
-                if current_handle in current_tree :
-                    if 'children' in current_tree[current_handle] :
-                        current_tree = current_tree[current_handle]['children']
-                    else :
-                        self.errorexit(_('Hum... Something went wrong somewhere...'))
-                else :
-                    self.errorexit(_('Hum... Something went wrong somewhere...'))
-            else :
-                self.errorexit(_('Hum... Something went wrong somewhere...'))
-        file_handles = current_tree.keys()
-        for handle in sorted(file_handles, key=lambda h:root['files'][h]['a']['n']) :
-            self.status(root['files'][handle]['a']['n'])
+        for file in self._enumerate_files(root, path) :
+            self.status(file['a']['n'])
 
     def findnode(self, root, arg, isfile=False, isdir=False) :
         if arg.startswith(':') :
@@ -286,9 +311,9 @@ class MegaCommandLineClient(object) :
             if path not in root['path'] :
                 self.errorexit(_('No node with path [%s]')%(path,))
             node = root['files'][root['path'][path]]
-        if isfile and node['t']!=0 :
+        if isfile and not node['isFile'] :
             self.errorexit(_('Argument [%s] should be a file, but [%s] is not a file')%(arg, node['a']['n']))
-        if isdir and node['t'] not in (1,2,4) :
+        if isdir and not node['isDir'] :
             self.errorexit(_('Argument [%s] should be a folder,  but [%s] is not a folder')%(arg, node['a']['n']))
         return node
 
