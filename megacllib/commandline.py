@@ -186,9 +186,11 @@ class MegaCommandLineClient(object) :
             'h' : '00000000',
             'p' : '',
             's' : 0,
+            't' : -1,
             'a' : { 'n' : '' },
             'isFile' : False,
             'isDir' : True,
+            'canUpload' : False,
             }
         files[rootnode['h']] = rootnode
         self.save_stream('files',files)
@@ -217,7 +219,8 @@ class MegaCommandLineClient(object) :
                     ptreeitem['children'] = {}
                 ptreeitem['children'][handle] = treeitem
                 file['isFile'] = (file['t'] == 0)
-                file['isDir'] = (file['t'] in (1,2,4))
+                file['isDir'] = (file['t'] in (1,2,3,4))
+                file['canUpload'] = (file['t'] in (1,2,4))
 
         def updatepath(dictchildren, parentpath, level) :
             for treeitem in dictchildren.values() :
@@ -289,6 +292,45 @@ class MegaCommandLineClient(object) :
         for handle in sorted(file_handles, key=lambda h:root['files'][h]['a']['n']) :
             yield root['files'][handle]
 
+    def _get_infos(self, file) :
+        infos = {}
+        file.get('t',None)
+        types = {
+            0 : 'File',
+            1 : 'Folder',
+            2 : 'Drive Folder',
+            3 : 'Inbox Folder',
+            -1 : 'Root Folder',
+        }
+        infos['types'] = types.get(file.get('t', None),'??')
+        infos['canUpload'] = file['canUpload']
+        infos['name'] = file['a']['n']
+        infos['path'] = file['a']['path']
+        infos['size'] = str(file.get('s',''))
+        ts = file.get('ts', None)
+        if ts is not None :
+            tm = time.gmtime(ts)
+            infos['time'] = "%04d-%02d-%02d %02d:%02d:%02d" % (tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec)
+        else :
+            infos['time'] = ''
+        infos['handle'] = ':'+file['h']
+        letters = infos['letters'] = {}
+        letters['dir'] = 'd' if file['isDir'] else '-'
+        letters['upload'] = 'u' if file['canUpload'] else '-'
+        letters['read'] = 'r'
+        letters['write'] = 'w'
+        letters['execute'] = 'x' if file['isDir'] else '-'
+        infos['attr'] = '%(dir)s%(upload)s%(read)s%(write)s%(execute)s' % letters
+        return infos
+
+
+    @CLRunner.command(params={
+        'long' : {
+            'need_value' : False,
+            'aliases' : ['l'],
+            'doc' : "use a long listing format",
+            },
+        })
     @CLRunner.command()
     def ls(self, args, kwargs) :
         """list files in a mega directory"""
@@ -297,8 +339,18 @@ class MegaCommandLineClient(object) :
             self.errorexit(_('Need a folder to list'))
         dirnode = self.findnode(root, args[0], isdir=True)
         path = dirnode['a']['path']
-        for file in self._enumerate_files(root, path) :
-            self.status(file['a']['n'])
+        if 'long' in kwargs :
+            lines = []
+            for file in self._enumerate_files(root, path) :
+                infos = self._get_infos(file)
+                lines.append((infos['attr'],infos['handle'],infos['size'],infos['time'],infos['name']))
+            aligns = ('-','-','','-','-')
+            pattern = " ".join( "%" + align + str(max(map(len,col))) + "s" for col,align in zip(zip(*lines),aligns) )
+            for line in lines :
+                self.status(pattern % line)
+        else :
+            for file in self._enumerate_files(root, path) :
+                self.status(file['a']['n'])
 
     def findnode(self, root, arg, isfile=False, isdir=False) :
         if arg.startswith(':') :

@@ -33,6 +33,7 @@ Usage
         ls                   list files in a mega directory
         mkdir                create a new remote directory
         put                  put one or more files
+        quota                get account's quota
         reload               reload the filesystem
         show                 list files on mega
     
@@ -173,7 +174,32 @@ Use can also use unix-like ls command::
     README.md
     xkcd
 
-Note that ``ls -l`` is note supported right now, but will be in the future.
+The command ``ls`` support the ``--long``/``-l`` paramater (like ``ls -l``)::
+
+    $ mcl ls --help
+    Command: ls [OPTIONS] [VALUES]
+    list files in a mega directory
+
+    Command parameters:
+        --long               use a long listing format
+                             (--long,-l)
+
+::
+
+    $ mcl ls -l '/Cloud Drive/Test'
+    --rw- :QKxQzDlD 3102405 2013-02-01 18:12:47 Image test.png
+    --rw- :4sMDajOQ    1850 2013-04-28 12:02:21 README.md
+    durwx :DDAgCv1a         2013-04-11 15:37:01 xkcd
+
+Quota
+-----
+
+Use can watch your space usage using::
+
+    $ mcl quota
+    Current quota: [21.00/50.00]
+
+This means you're using 21.00 GiB of your 50.00 GiB.
 
 Stateless usage with no config file involved
 --------------------------------------------
@@ -195,4 +221,11 @@ Commands look like::
     :0TwEKCpb '/Cloud Drive/Test/xkcd/353-python.png'
     :CLRGYv5Y '/Cloud Drive/Test/xkcd/303-compiling.png'
     :TKhFSKhJ '/Cloud Drive/Test/xkcd/163-donald_knuth.png'
+
+    $ mcl ls -l '/Cloud Drive/Test' --no-config --login=dave@example.com --password=r_N71kL4ee:cG28p-N,aam4
+    --rw- :QKxQzDlD 3102405 2013-02-01 18:12:47 Image test.png
+    --rw- :4sMDajOQ    1850 2013-04-28 12:02:21 README.md
+    durwx :DDAgCv1a         2013-04-11 15:37:01 xkcd
+
+
 
