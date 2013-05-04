@@ -342,7 +342,6 @@ class MegaCommandLineClient(object) :
             'doc' : "use a long listing format",
             },
         })
-    @CLRunner.command()
     def ls(self, args, kwargs) :
         """list files in a mega directory"""
         root = self.get_root()
@@ -362,6 +361,52 @@ class MegaCommandLineClient(object) :
         else :
             for file in self._enumerate_files(root, path) :
                 self.status(file['a']['n'])
+
+    @CLRunner.command(params={
+        'name' : {'doc': "show only name", 'aliases': ['n']},
+        'path' : {'doc': "show only path", 'aliases': ['p']},
+        'size' : {'doc': "show only size", 'aliases': ['s']},
+        'time' : {'doc': "show only time", 'aliases': ['t']},
+        'handle' : {'doc': "show only handle", 'aliases': ['H']},
+        'attributes' : {'doc': "show only attributes", 'aliases': ['a','attr']},
+        })
+    def info(self, args, kwargs) :
+        """get informations on a file or folder"""
+        root = self.get_root()
+        if len(args) == 0 :
+            self.errorexit(_('Need a file or a folder'))
+        nodes = []
+        for item in args :
+            node = self.findnode(root, item)
+            nodes.append(node)
+        restricted_view = False
+        params = {}
+        for key in ('name','path','size','time','handle','attributes') :
+            if key in kwargs :
+                restricted_view = True
+                params[key] = True
+        for node in nodes :
+            infos = self._get_infos(node)
+            if restricted_view :
+                if 'name' in params :
+                    self.status(infos['name'])
+                if 'path' in params :
+                    self.status(infos['path'])
+                if 'size' in params :
+                    self.status(infos['size'])
+                if 'time' in params :
+                    self.status(infos['time'])
+                if 'handle' in params :
+                    self.status(infos['handle'])
+                if 'attributes' in params :
+                    self.status(infos['attr'])
+            else :
+                self.status('Name: [%s]' % (infos['name'],))
+                self.status('Path: [%s]' % (infos['path'],))
+                self.status('Size: [%s]' % (infos['size'],))
+                self.status('Time: [%s]' % (infos['time'],))
+                self.status('Handle: [%s]' % (infos['handle'],))
+                self.status('Attributes: [%s]' % (infos['attr'],))
 
     def findnode(self, root, arg, isfile=False, isdir=False) :
         if arg.startswith(':') :
