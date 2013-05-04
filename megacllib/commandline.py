@@ -521,7 +521,21 @@ class MegaCommandLineClient(object) :
         storage = client.get_storage_space(giga=True)
         self.status(_("Current quota: [%(used).2f/%(total).2f]") % storage)
 
-
-
+    @CLRunner.command(aliases=['move'])
+    def mv(self, args, kwargs) :
+        """move an item into another directory"""
+        if len(args) < 2 :
+            self.errorexit(_('Need at least an item to move, and a diretcory where to move'))
+        items = args[:-1]
+        destination = args[-1]
+        root = self.get_root()
+        nodes = []
+        for item in items :
+            node = self.findnode(root, item)
+            nodes.append(node)
+        destination_node = self.findnode(root, destination)
+        client = self.get_client()
+        for node in nodes :
+            client.api_request({'a': 'm', 'n': node['h'], 't': destination_node['h'], 'i': client.request_id})
 
 
