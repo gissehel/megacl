@@ -178,6 +178,7 @@ class MegaCommandLineClient(object) :
             self._sequence_num = None
             self.save_config()
             self._root = None
+            self.del_stream('files')
             self.del_stream('root')
         self.status('logged out')
 
