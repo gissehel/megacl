@@ -38,6 +38,7 @@ class MegaCommandLineClient(object) :
 
         self._login = None
         self._password = None
+        self._force_reload = False
 
     def export_config(self) :
         if self._api is not None :
@@ -116,6 +117,11 @@ class MegaCommandLineClient(object) :
         if 'password' in kwargs :
             self._password = kwargs['password']
 
+    @CLRunner.param(name='reload')
+    def param_reload(self, **kwargs) :
+        """Force reload before the first action that need the filesystem"""
+        self._force_reload = True
+
     @CLRunner.command()
     def help(self, args=[], kwargs={}) :
         """give help"""
@@ -167,9 +173,14 @@ class MegaCommandLineClient(object) :
         self.status('logged out')
 
     def get_root(self) :
-        if self._root is not None :
-            return self._root
-        root = self.load_stream('root')
+        root = None
+        if self._force_reload :
+            self._root = None
+            self._force_reload = False
+        else :
+            if self._root is not None :
+                return self._root
+            root = self.load_stream('root')
         if root is not None :
             self._root = root
             for hfile in self._root['files'] :
