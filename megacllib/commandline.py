@@ -262,6 +262,7 @@ class MegaCommandLineClient(object) :
         'filter' : {
             'need_value' : True,
             'aliases' : ['f'],
+            'doc' : "filter the result using VALUE",
             },
         })
     def find(self, args, kwargs) :
@@ -276,6 +277,7 @@ class MegaCommandLineClient(object) :
         'filter' : {
             'need_value' : True,
             'aliases' : ['f'],
+            'doc' : "filter the result using VALUE",
             },
         })
     def show(self, args, kwargs) :
