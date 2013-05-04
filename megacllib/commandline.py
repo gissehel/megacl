@@ -259,36 +259,53 @@ class MegaCommandLineClient(object) :
         return self._root
 
     @CLRunner.command(params={
-        'filter' : {
-            'need_value' : True,
-            'aliases' : ['f'],
-            'doc' : "filter the result using VALUE",
-            },
+        'filter': {'need_value': True, 'aliases': ['f'], 'doc': "filter the result using VALUE"},
+        'short': {'aliases': ['s'], 'doc': "use short listing format (only the path)"},
+        'long': {'aliases': ['l'], 'doc': "use a long listing format"},
         })
     def find(self, args, kwargs) :
         """list files on mega"""
         root = self.get_root()
-        for path in sorted(root['path']) :
-            node = root['files'][root['path'][path]]
-            if ('filter' not in kwargs) or (kwargs['filter'].lower() in node['a']['path'].lower()) :
-                self.status(":%s '%s'" % (node['h'],node['a']['path']))
+
+        filter = kwargs['filter'] if 'filter' in kwargs else None
+        enumerator = self._enumerate_all_nodes(root, filter, lambda node:node['a']['path'])
+        if 'long' in kwargs :
+            on_name = lambda node, info: "'%s'" % (node['a']['path'],)
+        if 'short' in kwargs :
+            on_name = lambda node, info: node['a']['path']
+        else :
+            on_name = lambda node, info: ":%s '%s'" % (node['h'], node['a']['path'])
+
+        self._display_nodes( enumerator, 'long' in kwargs, on_name)
 
     @CLRunner.command(params={
-        'filter' : {
-            'need_value' : True,
-            'aliases' : ['f'],
-            'doc' : "filter the result using VALUE",
-            },
+        'filter' : {'need_value' : True, 'aliases' : ['f'], 'doc' : "filter the result using VALUE"},
+        'short': {'aliases': ['s'], 'doc': "use short listing format (only the indent and the name)"},
+        'long': {'aliases': ['l'], 'doc': "use a long listing format"},
         })
     def show(self, args, kwargs) :
         """list files on mega"""
         root = self.get_root()
+
+        filter = kwargs['filter'] if 'filter' in kwargs else None
+        enumerator = self._enumerate_all_nodes(root, filter, lambda node:node['a']['n'])
+        if 'long' in kwargs :
+            on_name = lambda node, info: "'%s'" % (node['a']['n'],)
+        if 'short' in kwargs :
+            on_name = lambda node, info: "%s%s" % ('  '*node['a']['level'], node['a']['n'])
+        else :
+            on_name = lambda node, info: ":%s %s'%s'" % (node['h'],'  '*node['a']['level'], node['a']['n'])
+
+        self._display_nodes( enumerator, 'long' in kwargs, on_name)
+
+    def _enumerate_all_nodes(self, root, filter, filter_on) :
         for path in sorted(root['path']) :
             node = root['files'][root['path'][path]]
-            if ('filter' not in kwargs) or (kwargs['filter'].lower() in node['a']['n'].lower()) :
-                self.status(":%s %s'%s'" % (node['h'],'  '*node['a']['level'], node['a']['n']))
+            if (filter is None) or (filter.lower() in filter_on(node).lower()) :
+                yield node
 
-    def _enumerate_files(self, root, path) :
+
+    def _enumerate_nodes(self, root, path) :
         if path == '/' :
             pathparts = [ '/' ]
         else :
@@ -361,18 +378,36 @@ class MegaCommandLineClient(object) :
             self.errorexit(_('Need a folder to list'))
         dirnode = self.findnode(root, args[0], isdir=True)
         path = dirnode['a']['path']
-        if 'long' in kwargs :
+
+        self._display_nodes(self._enumerate_nodes(root, path), 'long' in kwargs, lambda node, infos:node['a']['n'])
+
+        #if 'long' in kwargs :
+        #    lines = []
+        #    for file in self._enumerate_nodes(root, path) :
+        #        infos = self._get_infos(file)
+        #        lines.append((infos['attr'],infos['handle'],infos['size'],infos['time'],infos['name']))
+        #    aligns = ('-','-','','-','-')
+        #    pattern = " ".join( "%" + align + str(max(map(len,col))) + "s" for col,align in zip(zip(*lines),aligns) )
+        #    for line in lines :
+        #        self.status(pattern % line)
+        ##else :
+        #    for file in self._enumerate_nodes(root, path) :
+        #        self.status(file['a']['n'])
+
+    def _display_nodes(self, node_enumerator, is_long, on_name):
+        if is_long :
             lines = []
-            for file in self._enumerate_files(root, path) :
-                infos = self._get_infos(file)
-                lines.append((infos['attr'],infos['handle'],infos['size'],infos['time'],infos['name']))
+            for node in node_enumerator :
+                infos = self._get_infos(node)
+                lines.append((infos['attr'],infos['handle'],infos['size'],infos['time'],on_name(node, infos)))
             aligns = ('-','-','','-','-')
             pattern = " ".join( "%" + align + str(max(map(len,col))) + "s" for col,align in zip(zip(*lines),aligns) )
             for line in lines :
                 self.status(pattern % line)
         else :
-            for file in self._enumerate_files(root, path) :
-                self.status(file['a']['n'])
+            for node in node_enumerator :
+                self.status(on_name(node, None))
+
 
     @CLRunner.command(params={
         'name' : {'doc': "show only name", 'aliases': ['n']},
