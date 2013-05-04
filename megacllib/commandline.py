@@ -117,7 +117,7 @@ class MegaCommandLineClient(object) :
         if 'password' in kwargs :
             self._password = kwargs['password']
 
-    @CLRunner.param(name='reload')
+    @CLRunner.param(name='reload',aliases=['r'])
     def param_reload(self, **kwargs) :
         """Force reload before the first action that need the filesystem"""
         self._force_reload = True
