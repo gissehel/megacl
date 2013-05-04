@@ -27,18 +27,23 @@ from cltools import CLRunner
 class MegaCommandLineClient(object) :
     """A command line tool for mega.co.nz"""
     def __init__(self) :
+        self._init_account_config()
+
+        self._use_config = True
+
+        self._login = None
+        self._password = None
+        self._force_reload = False
+        self._profile = None
+
+    def _init_account_config(self) :
         self._sid = ''
         self._master_key = None
         self._email = None
         self._api = None
         self._sequence_num = None
-        self._use_config = True
 
         self._root = None
-
-        self._login = None
-        self._password = None
-        self._force_reload = False
 
     def export_config(self) :
         if self._api is not None :
@@ -81,6 +86,15 @@ class MegaCommandLineClient(object) :
         if self._use_config :
             self.__super.save_stream(*args,**kwargs)
 
+    @CLRunner.param(aliases=['P'],need_value=True)
+    def profile(self, kwargs, **rem_kwargs) :
+        """Use a different profile than the default"""
+        if 'profile' in kwargs :
+            self._profile = kwargs['profile']
+            self.set_profile(self._profile)
+            self._init_account_config()
+            self.load_config()
+
     @CLRunner.param(aliases=['d'])
     def debug(self, **kwargs) :
         '''Provide some debug informations'''
@@ -96,14 +110,9 @@ class MegaCommandLineClient(object) :
     @CLRunner.param(name='no-config',aliases=['X'])
     def no_config(self,**kwargs) :
         '''Don't read/write config files'''
-        self._sid = ''
-        self._master_key = None
-        self._email = None
-        self._api = None
-        self._sequence_num = None
-        self._use_config = False
+        self._init_account_config()
 
-        self._root = None
+        self._use_config = False
 
     @CLRunner.param(name='login', need_value=True)
     def param_login(self, kwargs, **rem_kwargs) :
