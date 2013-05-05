@@ -483,6 +483,22 @@ class MegaCommandLineClient(object) :
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
     @CLRunner.command()
+    def checkmac(self, args, kwargs) :
+        """check if the mac of a remote match a local file"""
+        root = self.get_root()
+        api = self.get_api()
+        if len(args) != 2 :
+            self.errorexit(_('Need a remote file handle or name, and a local file name'))
+        node = self.findnode(root, args[0], isfile=True)
+        filename = args[1]
+        if not os.path.exists(filename) :
+            self.errorexit(_("Filename [%s] doesn't exist") % (filename,))
+        start_time = time.time()
+        api.check_mac(node, filename)
+        stop_time = time.time()
+        self.status(self._get_status_transfert(node['s'], start_time, stop_time))
+
+    @CLRunner.command()
     def get_noaes(self, args, kwargs) :
         """get one or more files"""
         root = self.get_root()
