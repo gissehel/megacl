@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 
 setup(name='megacl',
-      version='0.4.3-testspeed',
+      version='0.4.3-testspeed-2',
       description='mega.co.nz command line client.',
       author='Arthibus Gisséhel',
       author_email='public-dev-megacl@gissehel.org',
