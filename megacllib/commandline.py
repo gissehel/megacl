@@ -475,14 +475,66 @@ class MegaCommandLineClient(object) :
             filename = node['a']['n']
             size = node['s']
             self.status(_('Getting [%s] (%s bytes)')%(filename, size))
-        
+
             api = self.get_api()
             start_time = time.time()
-            api.download((node['h'], node), '.')
+            api.download_file(None, None, file=node, dest_path='.', is_public=False)
             stop_time = time.time()
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
+    @CLRunner.command()
+    def get_noaes(self, args, kwargs) :
+        """get one or more files"""
+        root = self.get_root()
+        if len(args) == 0 :
+            self.errorexit(_('Need a file handle to download'))
+        for arg in args :
+            node = self.findnode(root, arg, isfile=True)
+            filename = node['a']['n']
+            size = node['s']
+            self.status(_('Getting [%s] (%s bytes)')%(filename, size))
 
+            api = self.get_api()
+            start_time = time.time()
+            api.download_file_noaes(None, None, file=node, dest_path='.', is_public=False)
+            stop_time = time.time()
+            self.status(self._get_status_transfert(size, start_time, stop_time))
+
+    @CLRunner.command()
+    def get_nomac(self, args, kwargs) :
+        """get one or more files"""
+        root = self.get_root()
+        if len(args) == 0 :
+            self.errorexit(_('Need a file handle to download'))
+        for arg in args :
+            node = self.findnode(root, arg, isfile=True)
+            filename = node['a']['n']
+            size = node['s']
+            self.status(_('Getting [%s] (%s bytes)')%(filename, size))
+
+            api = self.get_api()
+            start_time = time.time()
+            api.download_file_nomac(None, None, file=node, dest_path='.', is_public=False)
+            stop_time = time.time()
+            self.status(self._get_status_transfert(size, start_time, stop_time))
+
+    @CLRunner.command()
+    def get_noaes_nomac(self, args, kwargs) :
+        """get one or more files"""
+        root = self.get_root()
+        if len(args) == 0 :
+            self.errorexit(_('Need a file handle to download'))
+        for arg in args :
+            node = self.findnode(root, arg, isfile=True)
+            filename = node['a']['n']
+            size = node['s']
+            self.status(_('Getting [%s] (%s bytes)')%(filename, size))
+
+            api = self.get_api()
+            start_time = time.time()
+            api.download_file_noaes_nomac(None, None, file=node, dest_path='.', is_public=False)
+            stop_time = time.time()
+            self.status(self._get_status_transfert(size, start_time, stop_time))
 
     @CLRunner.command()
     def put(self, args, kwargs) :
