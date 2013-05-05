@@ -270,7 +270,7 @@ class MegaCommandLineClient(object) :
         enumerator = self._enumerate_all_nodes(root, filter, lambda node:node['a']['path'])
         if 'long' in kwargs :
             on_name = lambda node, info: "'%s'" % (node['a']['path'],)
-        if 'short' in kwargs :
+        elif 'short' in kwargs :
             on_name = lambda node, info: node['a']['path']
         else :
             on_name = lambda node, info: ":%s '%s'" % (node['h'], node['a']['path'])
@@ -289,8 +289,8 @@ class MegaCommandLineClient(object) :
         filter = kwargs['filter'] if 'filter' in kwargs else None
         enumerator = self._enumerate_all_nodes(root, filter, lambda node:node['a']['n'])
         if 'long' in kwargs :
-            on_name = lambda node, info: "'%s'" % (node['a']['n'],)
-        if 'short' in kwargs :
+            on_name = lambda node, info: "%s'%s'" % ('  '*node['a']['level'], node['a']['n'],)
+        elif 'short' in kwargs :
             on_name = lambda node, info: "%s%s" % ('  '*node['a']['level'], node['a']['n'])
         else :
             on_name = lambda node, info: ":%s %s'%s'" % (node['h'],'  '*node['a']['level'], node['a']['n'])
