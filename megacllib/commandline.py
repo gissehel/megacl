@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# from megaclient import MegaClient
 from mega import Mega
 import sys
 import os
@@ -61,7 +60,7 @@ class MegaCommandLineClient(object) :
         self._master_key = config.get('master_key',None)
         self._sequence_num = config.get('sequence_num',None)
 
-    def get_client(self) :
+    def get_api(self) :
         if (self._api is None) :
             if (self._sid != '') :
                 self._api = Mega()
@@ -198,10 +197,10 @@ class MegaCommandLineClient(object) :
                     if type(self._root['files'][hfile][kprop]) == list :
                         self._root['files'][hfile][kprop] = tuple(self._root['files'][hfile][kprop])
             return self._root
-        client = self.get_client()
-        if client is None :
+        api = self.get_api()
+        if api is None :
             self.errorexit(_('You must login first'))
-        files = client.get_files()
+        files = api.get_files()
         root = {}
         rootnode = {
             'h' : '00000000',
@@ -477,9 +476,9 @@ class MegaCommandLineClient(object) :
             size = node['s']
             self.status(_('Getting [%s] (%s bytes)')%(filename, size))
         
-            client = self.get_client()
+            api = self.get_api()
             start_time = time.time()
-            client.download((node['h'], node), '.')
+            api.download((node['h'], node), '.')
             stop_time = time.time()
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
@@ -497,12 +496,12 @@ class MegaCommandLineClient(object) :
 
         node = self.findnode(root, args[-1], isdir=True)
         for filename in args[:-1]:
-            client = self.get_client()
+            api = self.get_api()
             dirname, basename = os.path.split(filename)
             size = os.stat(filename).st_size
             self.status(_('Sending [%s] (%s bytes)')%(filename,size))
             start_time = time.time()
-            client.upload(filename, node['h'])
+            api.upload(filename, node['h'])
             stop_time = time.time()
             self.status(self._get_status_transfert(size, start_time, stop_time))
 
@@ -519,10 +518,10 @@ class MegaCommandLineClient(object) :
         """create a new remote directory"""
         if len(args) < 2:
             self.errorexit(_('Need a directory name and a place where to create it (directory path or handle'))
-        client = self.get_client()
+        api = self.get_api()
         root = self.get_root()
         node = self.findnode(root, args[1], isdir=True)
-        client.create_folder(args[0], node['h'])
+        api.create_folder(args[0], node['h'])
 
     @CLRunner.command()
     def geturl(self, args, kwargs) :
@@ -532,17 +531,17 @@ class MegaCommandLineClient(object) :
         for arg in args :
             if '!' not in arg :
                 self.errorexit(_("[%s] is not a valid mega url") % (arg,))
-        client = self.get_client()
+        api = self.get_api()
         for arg in args :
             file_handle, file_key = arg.split('!')[-2:]
             self.status(_('Downloading https://mega.co.nz/#!%s!%s') % (file_handle, file_key))
-            client.download_file(file_handle, file_key, is_public=True)
+            api.download_file(file_handle, file_key, is_public=True)
 
     @CLRunner.command()
     def quota(self, args, kwargs) :
         """get account's quota"""
-        client = self.get_client()
-        storage = client.get_storage_space(giga=True)
+        api = self.get_api()
+        storage = api.get_storage_space(giga=True)
         self.status(_("Current quota: [%(used).2f/%(total).2f]") % storage)
 
     @CLRunner.command(aliases=['move'])
@@ -558,9 +557,9 @@ class MegaCommandLineClient(object) :
             node = self.findnode(root, item)
             nodes.append(node)
         destination_node = self.findnode(root, destination)
-        client = self.get_client()
+        api = self.get_api()
         for node in nodes :
-            client.api_request({'a': 'm', 'n': node['h'], 't': destination_node['h'], 'i': client.request_id})
+            api.api_request({'a': 'm', 'n': node['h'], 't': destination_node['h'], 'i': api.request_id})
 
     @CLRunner.command()
     def rename(self, args, kwargs) :
@@ -568,8 +567,8 @@ class MegaCommandLineClient(object) :
         if len(args) != 2 :
             self.errorexit(_('Need an item to rename, and a new name'))
         root = self.get_root()
-        client = self.get_client()
+        api = self.get_api()
         node = self.findnode(root, args[0])
         newname = args[1]
-        client.rename((node['h'],node), newname)
+        api.rename((node['h'],node), newname)
 
