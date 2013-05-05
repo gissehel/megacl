@@ -381,19 +381,6 @@ class MegaCommandLineClient(object) :
 
         self._display_nodes(self._enumerate_nodes(root, path), 'long' in kwargs, lambda node, infos:node['a']['n'])
 
-        #if 'long' in kwargs :
-        #    lines = []
-        #    for file in self._enumerate_nodes(root, path) :
-        #        infos = self._get_infos(file)
-        #        lines.append((infos['attr'],infos['handle'],infos['size'],infos['time'],infos['name']))
-        #    aligns = ('-','-','','-','-')
-        #    pattern = " ".join( "%" + align + str(max(map(len,col))) + "s" for col,align in zip(zip(*lines),aligns) )
-        #    for line in lines :
-        #        self.status(pattern % line)
-        ##else :
-        #    for file in self._enumerate_nodes(root, path) :
-        #        self.status(file['a']['n'])
-
     def _display_nodes(self, node_enumerator, is_long, on_name):
         if is_long :
             lines = []
