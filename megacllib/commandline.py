@@ -584,20 +584,5 @@ class MegaCommandLineClient(object) :
         client = self.get_client()
         node = self.findnode(root, args[0])
         newname = args[1]
-        # client.rename(node, newname)
-        self._rename(node, newname)
-
-    def _rename(self, node, newname) :
-        from mega.crypto import base64_url_encode, encrypt_attr, a32_to_base64, encrypt_key
-        client = self.get_client()
-        attribs = {'n': newname}
-        encrypt_attribs = base64_url_encode(encrypt_attr(attribs, node['k']))
-        encrypted_key = a32_to_base64(encrypt_key(node['key'], client.master_key))
-        client.api_request([{
-            'a': 'a',
-            'attr': encrypt_attribs,
-            'key': encrypted_key,
-            'n': node['h'],
-            'i': client.request_id,
-        }])
+        client.rename((node['h'],node), newname)
 
