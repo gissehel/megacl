@@ -572,3 +572,32 @@ class MegaCommandLineClient(object) :
         newname = args[1]
         api.rename((node['h'],node), newname)
 
+    def _assert_public_url(self, url) :
+        'https://mega.co.nz/#!rwQnTIZb!c4Wri1IAVU92FSgzJvk2z3uXonY7Rf3yQotO03Kyhrs'
+        url_parts = url.split('!')
+        if not(url.startswith('https://mega.co.nz/#!')) or len(url_parts)!=3 :
+            self.errorexit(_('Not a valid public url: [%s]') % url)
+        url_handle, url_key = url_parts[1:]
+        if len(url_handle) != 8 or len(url_key) != 43 :
+            self.errorexit(_('Not a valid public url: [%s]') % url)
+        return url_handle, url_key
+
+
+    @CLRunner.command(name='import')
+    def import_command(self, args, kwargs):
+        """import urls into a folder"""
+        if len(args) == 0:
+            self.errorexit(_('Need one or more url to import, and eventually a folder where to put files'))
+        urls = args
+        folder_arg = '/Cloud Drive'
+        if (args[-1][:1] in ('/',':')):
+            urls = args[:-1]
+            folder_arg = args[-1]
+        public_infos = [ self._assert_public_url(url) for url in urls ]
+        api = self.get_api()
+        root = self.get_root()
+
+        node = self.findnode(root, folder_arg, isdir=True)
+        for pfile_handle, pfile_key in public_infos:
+            api.import_public_file(pfile_handle, pfile_key, dest_node=node)
+
