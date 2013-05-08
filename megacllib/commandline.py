@@ -644,7 +644,7 @@ class MegaCommandLineClient(object) :
     @CLRunner.command(aliases=['remove'])
     def rm(self, args, kwargs):
         """remove one or more file or folder"""
-        if len(args) != 2 :
+        if len(args) == 0 :
             self.errorexit(_('Need at least an item to delete'))
         api = self.get_api()
         root = self.get_root()
