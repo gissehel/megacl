@@ -601,3 +601,47 @@ class MegaCommandLineClient(object) :
         for pfile_handle, pfile_key in public_infos:
             api.import_public_file(pfile_handle, pfile_key, dest_node=node)
 
+    @CLRunner.command(params={
+        'name' : {'doc': "show only name", 'aliases': ['n']},
+        'size' : {'doc': "show only size", 'aliases': ['s']},
+        })
+    def infourl(self, args, kwargs):
+        """get info on a url"""
+        if len(args) == 0:
+            self.errorexit(_('Need a public url to get info'))
+        urls = args
+        public_infos = [ list(self._assert_public_url(url)) + [url] for url in urls ]
+        api = self.get_api()
+
+        datas = []
+        for pfile_handle, pfile_key, url in public_infos:
+            try:
+                data = api.get_public_file_informations(pfile_handle, pfile_key)
+            except Exception:
+                data = {'name': '', 'size': ''}
+            if data is None :
+                data = {'name': '', 'size': ''}
+            data['url'] = url
+            datas.append(data)
+
+        restricted_view = False
+        params = {}
+        for key in ('name','size') :
+            if key in kwargs :
+                restricted_view = True
+                params[key] = True
+        for infos in datas :
+            if restricted_view :
+                if 'name' in params :
+                    self.status(infos['name'])
+                if 'size' in params :
+                    self.status(infos['size'])
+            else :
+                self.status('Url: [%s]' % (infos['url'],))
+                self.status('Name: [%s]' % (infos['name'],))
+                self.status('Size: [%s]' % (infos['size'],))
+
+
+
+        
+
