@@ -641,6 +641,20 @@ class MegaCommandLineClient(object) :
                 self.status('Name: [%s]' % (infos['name'],))
                 self.status('Size: [%s]' % (infos['size'],))
 
+    @CLRunner.command(aliases=['remove'])
+    def rm(self, args, kwargs):
+        """remove one or more file or folder"""
+        if len(args) != 2 :
+            self.errorexit(_('Need at least an item to delete'))
+        api = self.get_api()
+        root = self.get_root()
+        nodes = [ self.findnode(root, arg) for arg in args ]
+        for node in nodes:
+            self.status(_("Removing [%s] (:%s)") % (node['a']['n'],node['h']))
+            api.destroy(node['h'])
+            self.status(_("    [%s] (:%s) removed.") % (node['a']['n'],node['h']))
+
+
 
 
         
