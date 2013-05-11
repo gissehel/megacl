@@ -4,7 +4,7 @@ from mega import Mega
 import sys
 import os
 import time
-import yaml
+#import yaml
 # import pyaml
 import shutil
 import getpass
@@ -94,11 +94,11 @@ class MegaCommandLineClient(object) :
             self._init_account_config()
             self.load_config()
 
-    @CLRunner.param(aliases=['d'])
-    def debug(self, **kwargs) :
-        '''Provide some debug informations'''
-        self.help()
-        print yaml.dump(self._cl_params,default_flow_style=False)
+    #@CLRunner.param(aliases=['d'])
+    #def debug(self, **kwargs) :
+    #    '''Provide some debug informations'''
+    #    self.help()
+    #    print yaml.dump(self._cl_params,default_flow_style=False)
 
     @CLRunner.param(name='help',aliases=['h'])
     def help_param(self,**kwargs) :
