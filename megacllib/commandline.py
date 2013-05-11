@@ -3,6 +3,7 @@
 from mega import Mega
 import sys
 import os
+import re
 import time
 #import yaml
 # import pyaml
@@ -14,6 +15,8 @@ from supertools import superable
 from cltools import _
 from cltools import ConfigurableCLRunnable
 from cltools import CLRunner
+
+re_url = re.compile(r'https://mega.co.nz/#!.{52}',re.M+re.I)
 
 @CLRunner.runnable(
     runnable=ConfigurableCLRunnable,
@@ -583,22 +586,41 @@ class MegaCommandLineClient(object) :
         return url_handle, url_key
 
 
-    @CLRunner.command(name='import')
+    @CLRunner.command(name='import', params={
+        'stdin' : {'doc': "parse stdin in order to find urls", 'aliases': ['i']},
+        })
     def import_command(self, args, kwargs):
         """import urls into a folder"""
-        if len(args) == 0:
-            self.errorexit(_('Need one or more url to import, and eventually a folder where to put files'))
-        urls = args
+        is_stdin = False
         folder_arg = '/Cloud Drive'
-        if (args[-1][:1] in ('/',':')):
-            urls = args[:-1]
-            folder_arg = args[-1]
+        urls = []
+
+        if 'stdin' in kwargs:
+            is_stdin = True
+            if len(args) > 1:
+                self.errorexit(_('Too much arguments, you need at most a folder where to put file in stdin mode'))
+            if len(args) == 1:
+                folder_arg = args[-1]
+        else:
+            is_stdin = False
+            if len(args) == 0:
+                self.errorexit(_('Need one or more url to import, and eventually a folder where to put files'))
+            urls = args
+            if (args[-1][:1] in ('/',':')):
+                urls = args[:-1]
+                folder_arg = args[-1]
+
+        if is_stdin:
+            for line in sys.stdin:
+                urls += re_url.findall(line)
+
         public_infos = [ self._assert_public_url(url) for url in urls ]
         api = self.get_api()
         root = self.get_root()
 
         node = self.findnode(root, folder_arg, isdir=True)
         for pfile_handle, pfile_key in public_infos:
+            self.status(_("Importing [https://mega.co.nz/#!%s!%s!] into [%s]") % (pfile_handle, pfile_key, node['a']['n']))
             api.import_public_file(pfile_handle, pfile_key, dest_node=node)
 
     @CLRunner.command(params={
