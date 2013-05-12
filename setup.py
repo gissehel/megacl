@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 
 setup(name='megacl',
-      version='0.4.5',
+      version='0.4.6',
       description='mega.co.nz command line client.',
       author='Arthibus Gisséhel',
       author_email='public-dev-megacl@gissehel.org',
@@ -14,7 +14,7 @@ setup(name='megacl',
       license='MIT',
       keywords='commandline mega.co.nz mega',
       long_description=open('README.rst').read(),
-      install_requires=['supertools','cltools>=0.4.0','mega.py>=0.9.10',
+      install_requires=['supertools','cltools>=0.4.0','mega.py>=0.9.13',
         'requests', # non declared yet mega.py dependency
         'pycrypto', # non declared yet mega.py dependency
         ],
