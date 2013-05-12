@@ -638,7 +638,7 @@ class MegaCommandLineClient(object) :
         datas = []
         for pfile_handle, pfile_key, url in public_infos:
             try:
-                data = api.get_public_file_informations(pfile_handle, pfile_key)
+                data = api.get_public_file_info(pfile_handle, pfile_key)
             except Exception:
                 data = {'name': '', 'size': ''}
             if data is None :
