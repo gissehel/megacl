@@ -1,3 +1,7 @@
+.. warning::
+   This tool is most probably obsolete, and not currently maintained.
+   
+   
 megacl
 ======
 
